@@ -11,6 +11,7 @@ import scipy.stats
 import mpld3
 import matplotlib.pyplot
 
+
 # The point of this function is to calculate the enrichment scores for a single
 # experiment--the probability that the list of genes is positively or negatively
 # enriched for specific groups of genes.
@@ -59,7 +60,7 @@ def calculate_enrichment(gene_data, go_to_genes, n=100):
         if bottom < 5e-2:
             negative_enrichment_scores.append((goid, bottom))
 
-    return positive_enrichment_scores,negative_enrichment_scores
+    return sorted(positive_enrichment_scores, key=lambda tup: tup[1]), sorted(negative_enrichment_scores, key=lambda tup: tup[1])
 
 
 # It would be useful to group experiments together. This function is one way to
@@ -76,8 +77,13 @@ def calculate_enrichment(gene_data, go_to_genes, n=100):
 # - a list of the N most similar experiments (determined however you like)
 #
 def similar_experiments(exp, exp_data, n=10):
-    return None
+    scores = []
 
+    for i in range(exp) + range(exp+1, len(exp_data)):
+        rho, pval = scipy.stats.spearmanr(zip(*exp_data[exp])[1], zip(*exp_data[i])[1])
+        scores.append((i, rho))
+    scores = zip(*sorted(scores, key=lambda tup: tup[1], reverse=True))
+    return scores[0][:n]
 
 # The more general version of the above function is to cluster the experiments.
 # You should have heard something about clustering already, I hope. The idea for this

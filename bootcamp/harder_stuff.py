@@ -36,6 +36,29 @@ def calculate_enrichment(gene_data, go_to_genes, n=100):
     positive_enrichment_scores = []
     negative_enrichment_scores = []
 
+    sorted_pos = sorted(gene_data, key=lambda tup: tup[1])
+
+    for goid, genes in go_to_genes.iteritems():
+
+        type1_top = []
+        type1_bottom = []
+        total_type1 = []
+
+        for i, value in enumerate(sorted_pos):
+            if value[0] in genes:
+                if i < n:
+                   type1_top.append(value[0])
+                if i > len(gene_data) - n - 1:
+                    type1_bottom.append(value[0])
+                total_type1.append(value[0])
+        top = scipy.stats.hypergeom.sf(len(type1_top), len(gene_data), len(total_type1), n)
+        bottom = scipy.stats.hypergeom.sf(len(type1_bottom), len(gene_data), len(total_type1), n)
+
+        if top < 5e-2:
+            positive_enrichment_scores.append((goid, top))
+        if bottom < 5e-2:
+            negative_enrichment_scores.append((goid, bottom))
+
     return positive_enrichment_scores,negative_enrichment_scores
 
 
